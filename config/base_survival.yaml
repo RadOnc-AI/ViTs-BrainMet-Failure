@@ -1,0 +1,92 @@
+defaults:
+  - base_config
+  - _self_
+
+name: example_experiment
+
+general:
+  train: True  # True if training, False if only testing
+  test: True  # True if you are just testing or want to test at the end of the training
+  gpus: 1
+  seed: 0
+  log_pth: ./logs #directory to create a subdirectory for the experiment which contains model checkpoints and metric logs
+  log_wandb: False 
+
+datasets:
+  parent_path: /home/cerdur/Aurora_Data_Preprocessed_Cropped
+  label_csv: table_train+test_clinical_new.csv
+  cache_dir: null
+  cached_dataset: False
+  sequences_to_use: [t1c, fla, seg] #[t1,t2,t1c,fla,seg]
+  target_labels: [LF,LC]
+  use_tabular: True
+  num_intervals: 20 # for discrete loss
+
+split: # will split the training cohort
+  precomputed_splits: fold_splits.json
+  train: null # int as number of samples or float for percentile
+  cross_val: 5 # give number of folds or leave empty {} (or False)
+
+loader: # same values for val and test 
+  num_workers: 8
+  batch_size:
+    train: 10
+    test: 10
+  shuffle:
+    train: True
+    test: False
+  stratified_batch: True
+  oversampling_ones: False
+  #separate_multi_metastases: False
+
+  # define any preprocessing (e.g. cropping) or augmentation, !! IN EXECUTION ORDER !!
+transforms:
+  train: {}
+  test: {}
+    
+
+model: 
+    
+  name: ResNet34
+    
+  n_input_channels: 3
+  num_tabular_features: 27
+  num_target_classes: [1]
+  # number of classes for each target label, -1 denotes regression
+   
+    
+training:
+  num_epochs: 10
+  continue_epoch: null # which epoch to contiune from 
+  continue_ckpt: null # maybe load another experiment as trace?
+  continue_fold: 0 # continue CV from specific fold
+  ckpt_frequency: 10 # in epochs
+  grad_acc_steps: 1
+ 
+  loss: 
+    loss_instances: {}
+    
+    loss_weights: [1.0] # [1.0,0.5]
+    repeat_inputs: False
+
+  optimizer:
+    AdamW:
+      lr: 2.e-3
+      weight_decay: 1.e-4
+  scheduler:
+    initializer:
+      ReduceLROnPlateau:
+        mode: min
+        factor: 0.5
+        threshold: 0.01
+        patience: 10
+    monitor: cindex/val
+    frequency: 1
+  # early_stopping:
+  #   monitor: loss/val
+  #   patience: 15
+
+metrics: 
+  target:0:
+    CIndex: {}
+      

@@ -79,7 +79,7 @@ def get_datasets(cfg):
             idx = cfg.datasets.target_labels.index("BF")
             events.append(labels[idx])
 
-        patient_dict["mask"] = str(list(patient.glob(f"*seg_result.nii.gz"))[0])
+        patient_dict["mask"] = str(list(patient.glob(f"*label.nii.gz"))[0])
 
 
         if cfg.datasets.use_tabular:
@@ -110,7 +110,7 @@ def get_datasets(cfg):
         patient_dict = {"patient_id": patient_id, "labels": labels}
         patient_dict["images"] = images
 
-        patient_dict["mask"] = str(list(patient.glob(f"*seg_result.nii.gz"))[0])  # todo: filename
+        patient_dict["mask"] = str(list(patient.glob(f"*label.nii.gz"))[0])  # todo: filename
 
 
         if cfg.datasets.use_tabular:

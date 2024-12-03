@@ -13,6 +13,6 @@ pytorch_lightning==1.8.6
 PyYAML==6.0.2
 scikit_learn==1.2.2
 scikit_survival==0.21.0
-torch==2.4.0 # download for cuda via pip from pytorch.org
+# torch==2.4.0 # download for cuda 12.1 via pip from pytorch.org
 torchmetrics==1.3.2
 wandb==0.16.5

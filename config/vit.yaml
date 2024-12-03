@@ -1,0 +1,137 @@
+defaults:
+  - base_survival@_here_
+  - _self_
+
+name: CVcox_vit-medium_s10_register4
+
+general:
+  log_wandb: True 
+  # gpus: 2
+  train: True
+  test: True
+  # seed: 4
+
+testing:
+  test_epoch: [null, 49, 99]
+
+datasets:
+  parent_path: /home/cerdur/Aurora_Data
+  label_csv: table_train+test_clinical_new.csv
+  sequences_to_use: [t1c, fla, seg]
+  cache_dir: null
+  cached_dataset: True
+  use_tabular: True
+
+split: # will split the training cohort
+  precomputed_splits: fold_splits.json
+  # train: 0.8 # int as number of samples or float for percentile
+  cross_val: 5 # give number of folds or leave empty {} (or False)
+
+loader: # same values for val and test 
+  num_workers: 8
+  batch_size:
+    train: 10
+    test: 10
+  shuffle:
+    train: True
+    test: False
+  stratified_batch: True
+  oversampling_ones: False
+
+  # define any preprocessing (e.g. cropping) or augmentation, !! IN EXECUTION ORDER !!
+transforms:
+  train:
+    ExtractLargestMetastasis:
+      keys: [mask]
+      mask_key: mask
+    CropToMask:
+      keys: [images,mask]
+      mask_key: mask
+      use_class: 1 # edema
+      min_dim: [95, 123, 108] # pad if smaller
+      
+    RandAdjustContrastd:
+      keys: images
+      prob: 0.5
+      gamma: [0.5, 1.5]
+    RandGaussianSmoothd:
+      keys: images
+      prob: 0.5
+      # sigma: [0.5, 1.5]
+    RandFlipd:
+      keys: [images,mask]
+      spatial_axis: [0,1]
+      prob: 0.5
+  test: 
+    ExtractLargestMetastasis:
+      keys: [mask]
+      mask_key: mask 
+    CropToMask:
+      keys: [images,mask]
+      mask_key: mask
+      min_dim: [95, 123, 108] 
+      use_class: 1
+    
+
+model: 
+  name: ViT
+  additional_args: 
+    img_size: [95, 123, 108] 
+    # img_size: [240,240,155]
+    # img_size: [65, 72,68]
+    patch_size: 16
+    hidden_size: 512
+    num_heads: 8
+    mlp_dim: 3072
+    num_register_tokens: 4
+    # save_attn: True # for LRP
+  n_input_channels: 3
+  num_tabular_features: 27
+  num_target_classes: [1]
+  #
+    
+training:
+  # start_second_stage_epoch: 0   
+  num_epochs: 100
+  continue_epoch: null # which epoch to contiune from 
+  continue_ckpt: null # maybe load another experiment as trace?
+  ckpt_frequency: 50 # in epochs
+  grad_acc_steps: 4
+  loss: 
+    loss_instances:
+
+      # DiscreteSurvLoss:
+      # #   # ticks: [0.0, 6.0, 12.0, 18.0, 24.0, 30.0, 45.0, 60.0, 75.0, 90.0, 120.0, 150.0]
+      #   event_weight: 20.0
+      #   num_intervals: 20
+      #   interval_duration: 6
+      #   
+      CoxPHLoss: {}
+      # BCEWithLogitsLoss: {}
+      # SoftF1LossWithLogits: {}
+      # SoftMCCWithLogitsLoss: {}
+      # RMSELoss: {}
+    loss_weights: [1.0] # [1.0,0.5]
+    repeat_inputs: False
+
+  
+
+metrics: 
+  target:0:
+    CIndex: {}
+      # interval_duration: 6
+      # ticks: [0.0, 6.0, 12.0, 18.0, 24.0, 30.0, 45.0, 60.0, 75.0, 90.0, 120.0, 150.0]
+    # MCC: {}
+    # Accuracy:
+    #   task: binary
+    # AUROC:
+    #   task: binary
+      
+    # target:1:
+    #   MeanSquaredError:
+    #     squared: True
+    #   R2Score: {}
+
+  
+
+  
