@@ -38,10 +38,14 @@ parent_dir/
 
 Please have a look at `config/base_survival.yaml` and `config/vit.yaml` to see how to modify config files. Then the code is run simply by the command:
 
-`python main.py -cn vit.yaml` 
+```
+python main.py -cn vit.yaml
+```
 
 Training and testing are governed by the same script, just adjust `general.train` and `general.test` flags in the configs. If both are true, first a complete training will be executed and then the checkpoints will be used for testing.
 
 We are using hydra, so configs can be overwritten on the command line like:
 
-`python main.py -cn vit.yaml general.train=False` 
+```
+python main.py -cn vit.yaml general.train=False
+```
